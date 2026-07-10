@@ -2,7 +2,7 @@
 
 Digio Android SDK — stateless + camera path. Last updated: 2026-07-10.
 
-Everything below assumes partners consume the SDK via Jitpack (the shipped distribution). Local AAR development is an internal-only workflow and is documented at the bottom for team reference.
+Everything below assumes partners consume the SDK via Jitpack (the shipped distribution).
 
 Captures:
 - Detailed size breakdown — every Digio AAR and every required transitive with measured bytes
