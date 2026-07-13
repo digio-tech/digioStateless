@@ -10,8 +10,8 @@ Captures:
 - Minimum requirements
 - The full deps block partners need to add
 - Recommended minimal partner `proguard-rules.pro`
-- Known crashes and the AAR versions that fix them
-- Notes for the internal team
+
+
 
 ---
 
