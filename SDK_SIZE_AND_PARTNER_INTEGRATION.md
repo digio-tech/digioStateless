@@ -48,11 +48,9 @@ The Digio SDK relies on standard Android + Google + third-party libraries partne
 
 **Lifecycle-KTX libs are no longer required** — cameraKit and digioStateless were refactored (2026-07-13) to use self-managed `CoroutineScope`s instead of `viewModelScope` / `lifecycleScope`. Partners can drop `fragment-ktx` / `activity-ktx` / `lifecycle-*-ktx` unless they use those elsewhere.
 
-**camera-video is now truly optional** — cameraKit's (2026-07-14). Still-selfie partners can drop `androidx.camera:camera-video` (~200–400 KB) with zero crash risk across every Android version cameraKit supports (API 21+).
+**camera-video is now truly optional** — cameraKit's (2026-07-14). Still-selfie partners can drop `androidx.camera:camera-video` (~200–400 KB).
 
-**play-services-mlkit-barcode-scanning is optional** — only needed if the partner uses QR code flows. Still-selfie partners can drop it (~500 KB – 1 MB after R8).
-
-**Bottom line for a modern Kotlin partner still-selfie app:** the net APK size increase from adding Digio's stateless + camera SDK is ~**1.2 – 1.7 MB compressed** — down from ~1.5–2 MB before the 2026-07-13/14 optimizations.
+**Bottom line for a modern Kotlin partner still-selfie app:** the net APK size increase from adding Digio's stateless + camera SDK is ~**1.2 – 1.7 MB compressed** — down from ~**4.5 – 6 MB** before the 2026-07-10 → 2026-07-14 optimization pass (**~70% reduction**). Real-world validation on a **reference partner integration app** (modern Kotlin, selfie-only flow): APK went from **5.7 MB → 3.2 MB (44% shrink)** end-to-end.
 
 ---
 
@@ -163,10 +161,54 @@ The BOM aligns all versions — partners don't need to pin the transitive versio
 
 - **`io.coil-kt:coil` no longer required.** cameraKit now uses `DigioImageLoader` — a platform-only image loader (HttpURLConnection + BitmapFactory + TransitionDrawable + LruCache). Partners save ~200–300 KB.
 - **KTX libs (`fragment-ktx` / `activity-ktx` / `lifecycle-*-ktx`) no longer required by Digio.** Both digioStateless and cameraKit were refactored to use self-managed `CoroutineScope`s. Partners can keep or drop these based on their own app code. Saves ~50 KB if dropped.
-- **`androidx.core:core-ktx` no longer explicitly required.** AppCompat brings core transitively; core-ktx only adds Kotlin extensions our code doesn't consume.
-- **`androidx.camera:camera-video` is now optional.** cameraKit's `CameraController` loads `VideoController` via `Class.forName` (safe on API 21+); still-selfie partners can drop this. Motion-selfie configs downgrade gracefully to still capture if the artifact is missing.
-- **`play-services-mlkit-barcode-scanning` is optional.** `QRCodeAnalyzer` instantiation is wrapped in try/catch — partners without QR flows can drop this artifact.
+- **`androidx.core:core-ktx` no longer explicitly required.**
+- **`androidx.camera:camera-video` is now optional.** 
 
+---
+
+## Recommended `buildTypes` Configuration
+
+Every size number above assumes the partner's app is built with R8 + resource shrinking enabled. Without these flags, the SDK's own optimizations can't fully take effect — partner APK stays large even with a lean dependency graph.
+
+```kotlin
+android {
+    buildTypes {
+        release {
+            isMinifyEnabled = true          // enables R8 (code shrink + obfuscation)
+            isShrinkResources = true        // strips unused drawables/layouts/values — 100–500 KB typical
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            // Optional — many partners keep debug unshrunk for faster iteration.
+            // Enable minify on debug only if you want to catch R8-related crashes
+            // early. Digio's AARs are R8-safe on both variants.
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+}
+```
+
+### Extra R8 tuning (optional)
+
+In `gradle.properties`:
+
+```properties
+# R8 full mode — more aggressive optimizations, additional ~50–200 KB shrink.
+# Default in AGP 8.0+; explicit declaration guards against regressions if this
+# ever gets flipped off elsewhere.
+android.enableR8.fullMode=true
+
+# Non-transitive R resources — smaller compiled R classes per module.
+android.nonTransitiveRClass=true
+```
+### Anti-patterns to avoid in `buildTypes`
+
+- `isMinifyEnabled = false` on release → **loses every size saving in this document**.
+- `isShrinkResources = true` **without** `isMinifyEnabled = true` → AGP will error (resource shrinking requires code shrinking).
 ---
 
 ## Minimal Partner `proguard-rules.pro`
