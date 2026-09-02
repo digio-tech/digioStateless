@@ -8,10 +8,6 @@
 ![AGP](https://img.shields.io/badge/AGP-8.0%2B-3DDC84?logo=android&logoColor=white)
 
 Android SDK for Digio's stateless KYC journey.
-
-- **Current version:** `5.0.13`
-- **Distribution:** JitPack (`com.github.digio-tech:digioStateless`)
-- **Artifact:** `in.digio.sdk:digio_stateless:5.0.13` (`.aar`)
 - **minSdk:** 21 &nbsp;&nbsp; **compileSdk:** 35+ &nbsp;&nbsp; **Kotlin:** 1.9+ &nbsp;&nbsp; **AGP:** 8.0+
 
 ## Installation
